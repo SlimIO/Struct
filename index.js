@@ -11,9 +11,6 @@ const get = require("lodash.get");
 // CONSTANTS
 const E_TYPES = new Set(["char", "uint8"]);
 
-// SYMBOLS
-const SCHEMA = Symbol("Schema");
-
 /**
  * @class Struct
  *
@@ -23,13 +20,13 @@ class Struct {
 
     /**
      * @static
-     * @func inline
+     * @func inlineSchema
      * @param {String=} rootName rootName
      * @param {Number} [defaultByteOffset=0] defaultByteOffset
      * @param {*} payload Schema payload
      * @returns {inlinedSchema}
      */
-    static inline(rootName = "", defaultByteOffset = 0, payload) {
+    static inlineSchema(rootName = "", defaultByteOffset = 0, payload) {
         const result = [];
 
         let byteOffset = defaultByteOffset;
@@ -66,6 +63,24 @@ class Struct {
     }
 
     /**
+     * @static
+     * @func inlinePayload
+     * @param {*} payload payload to inline
+     * @param {!String} rootKey rootKey
+     * @return {IterableIterator<any>}
+     */
+    static *inlinePayload(payload, rootKey = "") {
+        for (const [key, value] of Object.entries(payload)) {
+            if (typeof value === "object") {
+                yield* Struct.inlinePayload(value, `${rootKey}${key}.`);
+            }
+            else {
+                yield [`${rootKey}${key}`, value];
+            }
+        }
+    }
+
+    /**
      * @constructor
      * @param {*} schema Schema
      * @throws {TypeError}
@@ -75,24 +90,25 @@ class Struct {
             throw new TypeError("schema argument should be a JavaScript object!");
         }
 
-        const inlinedSchema = Struct.inline(void 0, 0, schema);
+        const inlinedSchema = Struct.inlineSchema(void 0, 0, schema);
         this.bytesLength = inlinedSchema.bytesLength;
-        this[SCHEMA] = inlinedSchema.result;
+        this.schema = inlinedSchema.result;
     }
 
     /**
      * @func encode
      * @param {*} payload payload
-     * @returns {Buffer}
+     * @returns {Uint8Array}
      */
     encode(payload) {
-        const arrBuffer = new ArrayBuffer(this.bytesLength);
-        const u8Arr = new Uint8Array(arrBuffer);
+        const u8Arr = new Uint8Array(new ArrayBuffer(this.bytesLength));
 
-        for (const [path, type, offset] of this[SCHEMA]) {
+        for (let id = 0; id < this.schema.length; id++) {
+            const [path, type, offset] = this.schema[id];
             const pValue = payload[path];
+
             if (type === "char") {
-                u8Arr.set([...pValue].map((char) => char.charCodeAt(0)), offset);
+                u8Arr.set(Uint8Array.from(pValue, (char) => char.charCodeAt(0)), offset);
             }
             else if (type === "uint8") {
                 u8Arr[offset] = pValue;
@@ -100,7 +116,7 @@ class Struct {
 
         }
 
-        return Buffer.from(arrBuffer);
+        return u8Arr;
     }
 
     /**

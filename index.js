@@ -17,7 +17,6 @@ const E_TYPES = new Set(["char", "uint8"]);
  * @property {Number} bytesLength
  */
 class Struct {
-
     /**
      * @static
      * @func inlineSchema
@@ -52,7 +51,7 @@ class Struct {
                 }
 
                 result.push([`${rootName}${key}`, typeName, byteOffset, byteLength]);
-                byteOffset = byteOffset + byteLength;
+                byteOffset += byteLength;
             }
         }
 
@@ -69,7 +68,7 @@ class Struct {
      * @param {!String} rootKey rootKey
      * @return {IterableIterator<any>}
      */
-    static *inlinePayload(payload, rootKey = "") {
+    static* inlinePayload(payload, rootKey = "") {
         for (const [key, value] of Object.entries(payload)) {
             if (typeof value === "object") {
                 yield* Struct.inlinePayload(value, `${rootKey}${key}.`);
@@ -113,7 +112,6 @@ class Struct {
             else if (type === "uint8") {
                 u8Arr[offset] = pValue;
             }
-
         }
 
         return u8Arr;

@@ -1,10 +1,10 @@
 {
   "name": "@slimio/struct",
   "version": "1.0.0",
-  "description": "",
+  "description": "SlimIO C/C++ Struct like",
   "main": "index.js",
   "scripts": {
-    "prepublish": "pkg-ok",
+    "prepublishOnly": "pkg-ok",
     "test": "ava --verbose",
     "doc": "jsdoc -c ./jsdoc.json -r -R ./README.md -P ./package.json --verbose",
     "coverage": "nyc ava",

@@ -100,16 +100,16 @@ class Struct {
      * @returns {Uint8Array}
      */
     encode(payload) {
-        const u8Arr = new Uint8Array(new ArrayBuffer(this.bytesLength));
+        const u8Arr = new Uint8Array(this.bytesLength);
 
         for (let id = 0; id < this.schema.length; id++) {
             const [path, type, offset] = this.schema[id];
-            const pValue = payload[path];
+            const pValue = get(payload, path);
 
             if (type === "char") {
                 u8Arr.set(Uint8Array.from(pValue, (char) => char.charCodeAt(0)), offset);
             }
-            else if (type === "uint8") {
+            else {
                 u8Arr[offset] = pValue;
             }
         }

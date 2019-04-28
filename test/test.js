@@ -6,11 +6,11 @@ const Schema = {
 };
 const Player = new Struct(Schema);
 
-// const buf = Player.encode({
-//     name: "fraxken",
-//     hp: 100
-// });
-// console.log(buf);
+const buf = Player.encode({
+    name: "fraxken",
+    hp: 100
+});
+console.log(buf);
 
 const DATA = {
     name: "fraxken",

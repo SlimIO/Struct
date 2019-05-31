@@ -126,10 +126,10 @@ class Struct {
         if (!Buffer.isBuffer(buf)) {
             throw new TypeError("buf should be a Node.js buffer!");
         }
+        console.log(this.schema);
 
         return {};
     }
-
 }
 
 // Available Types for our Struct

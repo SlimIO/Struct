@@ -20,5 +20,12 @@ TBC
 ## API
 TBC
 
+## Dependencies
+
+|Name|Refactoring|Security Risk|Usage|
+|---|---|---|---|
+|[@slimio/is](https://github.com/SlimIO/is#readme)|Minor|Low|Type Check|
+|[lodash.get](https://lodash.com/)|Low|Low|Deep Object get|
+
 ## License
 MIT

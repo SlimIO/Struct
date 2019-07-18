@@ -1,27 +1,24 @@
+"use strict";
+
 // Require Third-party Dependencies
 const is = require("@slimio/is");
 const get = require("lodash.get");
 
 /**
- * @typedef {Object} inlinedSchema
- * @property {Number} bytesLength
+ * @typedef {object} inlinedSchema
+ * @property {number} bytesLength
  * @property {*} result
  */
 
 // CONSTANTS
 const E_TYPES = new Set(["char", "uint8"]);
 
-/**
- * @class Struct
- *
- * @property {Number} bytesLength
- */
 class Struct {
     /**
      * @static
-     * @func inlineSchema
-     * @param {String=} rootName rootName
-     * @param {Number} [defaultByteOffset=0] defaultByteOffset
+     * @function inlineSchema
+     * @param {string} [rootName] rootName
+     * @param {number} [defaultByteOffset=0] defaultByteOffset
      * @param {*} payload Schema payload
      * @returns {inlinedSchema}
      */
@@ -63,10 +60,9 @@ class Struct {
 
     /**
      * @static
-     * @func inlinePayload
+     * @function inlinePayload
      * @param {*} payload payload to inline
-     * @param {!String} rootKey rootKey
-     * @return {IterableIterator<any>}
+     * @param {!string} rootKey rootKey
      */
     static* inlinePayload(payload, rootKey = "") {
         for (const [key, value] of Object.entries(payload)) {
@@ -80,7 +76,7 @@ class Struct {
     }
 
     /**
-     * @constructor
+     * @class Struct
      * @param {*} schema Schema
      * @throws {TypeError}
      */
@@ -95,7 +91,7 @@ class Struct {
     }
 
     /**
-     * @func encode
+     * @function encode
      * @param {*} payload payload
      * @returns {Uint8Array}
      */
@@ -118,7 +114,7 @@ class Struct {
     }
 
     /**
-     * @func decode
+     * @function decode
      * @param {!Buffer} buf Buffer to decode
      * @returns {*}
      */

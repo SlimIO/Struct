@@ -18,6 +18,9 @@
     "SlimIO",
     "monitoring"
   ],
+  "files": [
+      "index.js"
+  ],
   "author": "SlimIO",
   "license": "MIT",
   "bugs": {

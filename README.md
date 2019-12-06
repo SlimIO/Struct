@@ -2,7 +2,7 @@
 Node.js Structure
 
 ## Requirements
-- Node.js v10 or higher
+- Node.js v12 or higher
 
 ## Getting Started
 

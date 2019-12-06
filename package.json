@@ -28,7 +28,7 @@
   },
   "homepage": "https://github.com/SlimIO/Struct#readme",
   "engines": {
-    "node": ">=10"
+    "node": ">=12"
   },
   "husky": {
     "hooks": {

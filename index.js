@@ -1,137 +1,115 @@
+/* eslint-disable guard-for-in */
+/* eslint-disable max-params */
 "use strict";
 
 // Require Third-party Dependencies
+const dset = require("dset");
 const is = require("@slimio/is");
-const get = require("lodash.get");
 
-/**
- * @typedef {object} inlinedSchema
- * @property {number} bytesLength
- * @property {*} result
- */
-
-// CONSTANTS
-const E_TYPES = new Set(["char", "uint8"]);
+// Require Internal Dependencies
+const { flattenObject, parseType } = require("./src/utils");
+const CONSTANTS = require("./src/constants");
 
 class Struct {
-    /**
-     * @static
-     * @function inlineSchema
-     * @param {string} [rootName] rootName
-     * @param {number} [defaultByteOffset=0] defaultByteOffset
-     * @param {*} payload Schema payload
-     * @returns {inlinedSchema}
-     */
-    static inlineSchema(rootName = "", defaultByteOffset = 0, payload) {
-        const result = [];
+    #schema = {};
+    #bytesLength = 0;
+    #entries = [];
 
-        let byteOffset = defaultByteOffset;
-        for (const [key, value] of Object.entries(payload)) {
-            const isPlainObject = is.plainObject(value);
-            if (isPlainObject || is.array(value)) {
-                result.push([`${rootName}${key}`, isPlainObject ? "object" : "array"]);
-                const sub = Struct.inline(`${rootName}${key}.`, byteOffset, value);
+    static createSchema(struct) {
+        let offset = 0;
+        const schema = Object.create(null);
 
-                byteOffset = sub.bytesLength;
-                result.push(...sub.result);
+        for (const [completeKeyPath, keyType] of flattenObject(struct)) {
+            if (completeKeyPath in schema) {
+                continue;
             }
-            else if (typeof value === "string") {
-                const rV = /^([a-z0-9]+)\[([0-9]+)?\]$/g.exec(value);
-                if (rV === null) {
+
+            if (is.string(keyType)) {
+                const type = parseType(keyType);
+                if (type === null) {
                     continue;
                 }
 
-                const typeName = rV[1];
-                const byteLength = rV.length === 2 ? 1 : Number(rV[2]);
-                if (!E_TYPES.has(typeName)) {
-                    throw new Error(`Unknow type ${typeName} !`);
-                }
+                const currentOffset = offset;
+                const encode = CONSTANTS.encode[type.name];
+                const decode = CONSTANTS.decode[type.name];
 
-                result.push([`${rootName}${key}`, typeName, byteOffset, byteLength]);
-                byteOffset += byteLength;
-            }
-        }
-
-        return {
-            bytesLength: byteOffset,
-            result
-        };
-    }
-
-    /**
-     * @static
-     * @function inlinePayload
-     * @param {*} payload payload to inline
-     * @param {!string} rootKey rootKey
-     */
-    static* inlinePayload(payload, rootKey = "") {
-        for (const [key, value] of Object.entries(payload)) {
-            if (typeof value === "object") {
-                yield* Struct.inlinePayload(value, `${rootKey}${key}.`);
+                schema[completeKeyPath] = {
+                    isRootKey: !completeKeyPath.includes("."),
+                    encode: (dV, value) => encode(dV, value, currentOffset, type.length),
+                    decode: (dV) => decode(dV, currentOffset, type.length)
+                };
+                offset += type.length;
             }
             else {
-                yield [`${rootKey}${key}`, value];
+                const { kind, elementsType, length } = type;
+                const type = parseType(elementsType);
             }
         }
+
+        return { bytesLength: offset, schema };
     }
 
-    /**
-     * @class Struct
-     * @param {*} schema Schema
-     * @throws {TypeError}
-     */
-    constructor(schema) {
-        if (!is.object(schema)) {
-            throw new TypeError("schema argument should be a JavaScript object!");
-        }
+    constructor(struct = Object.create(null)) {
+        const { schema, bytesLength } = Struct.createSchema(struct);
 
-        const inlinedSchema = Struct.inlineSchema(void 0, 0, schema);
-        this.bytesLength = inlinedSchema.bytesLength;
-        this.schema = inlinedSchema.result;
+        this.#schema = schema;
+        this.#entries = Object.entries(this.#schema);
+        this.#bytesLength = bytesLength;
     }
 
-    /**
-     * @function encode
-     * @param {*} payload payload
-     * @returns {Uint8Array}
-     */
+    get length() {
+        return this.#bytesLength;
+    }
+
     encode(payload) {
-        const u8Arr = new Uint8Array(this.bytesLength);
-
-        for (let id = 0; id < this.schema.length; id++) {
-            const [path, type, offset] = this.schema[id];
-            const pValue = get(payload, path);
-
-            if (type === "char") {
-                u8Arr.set(Uint8Array.from(pValue, (char) => char.charCodeAt(0)), offset);
-            }
-            else {
-                u8Arr[offset] = pValue;
-            }
+        const arrBuffer = new ArrayBuffer(this.#bytesLength);
+        const dV = new DataView(arrBuffer);
+        for (const keyName in payload) {
+            keyName in this.#schema && this.#schema[keyName].encode(dV, payload[keyName]);
         }
 
-        return u8Arr;
+        return arrBuffer;
     }
 
-    /**
-     * @function decode
-     * @param {!Buffer} buf Buffer to decode
-     * @returns {*}
-     */
-    decode(buf) {
-        if (!Buffer.isBuffer(buf)) {
-            throw new TypeError("buf should be a Node.js buffer!");
-        }
-        console.log(this.schema);
+    decode(arrBuffer, offset = 0, isDv = false) {
+        // coût d'environ 80ms
+        const payload = Object.create(null);
+        const dV = isDv ? arrBuffer : new DataView(arrBuffer, offset);
 
-        return {};
+        // le dset coûte entre 3 et 4x plus en I/O qu'un set classique!
+        for (const [keyName, value] of this.#entries) {
+            (value.isRootKey ? payload[keyName] = value.decode(dV) : dset(payload, keyName, value.decode(dV)));
+        }
+
+        return payload;
+    }
+
+    * lazyDecode(arrBuffer, offset = 0, isDv = false) {
+        const dV = isDv ? arrBuffer : new DataView(arrBuffer, offset);
+
+        for (const [keyName, value] of this.#entries) {
+            yield [keyName, value.decode(dV)];
+        }
     }
 }
 
 // Available Types for our Struct
 const Types = {
     char: (length = 1) => `char[${length}]`,
-    uint8: () => "uint8[1]"
+    array: (elementsType, length = 1) => {
+        return { kind: "array", elementsType, length };
+    },
+    uInt8: "uint8",
+    uInt16: "uint16",
+    uInt32: "uint32",
+    int8: "int8",
+    int16: "int16",
+    int32: "int32",
+    float32: "float32",
+    float64: "float64",
+    bigInt64: "bigint64",
+    bigUInt64: "biguint64"
 };
 
 module.exports = {

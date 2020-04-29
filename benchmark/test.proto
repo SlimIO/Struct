@@ -1,4 +1,5 @@
 message Test {
     required string foo = 1;
     required int32 boo  = 2;
+    required bool isHuman = 3;
 }

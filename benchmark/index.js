@@ -9,11 +9,6 @@ const protobuf = require("protocol-buffers");
 
 const messages = protobuf(fs.readFileSync(join(__dirname, "test.proto")));
 
-const CLikeStruct = new Struct({
-    foo: Types.char(10),
-    boo: Types.uInt8
-});
-
 function str2ab(str) {
     const array = new Uint8Array(str.length);
     for (let id = 0; id < str.length; id++) {
@@ -23,10 +18,21 @@ function str2ab(str) {
     return array.buffer;
 }
 
+const CLikeStruct = new Struct({
+    foo: Types.char(10),
+    boo: Types.uInt8,
+    isHuman: Types.bool
+});
+
 const payload = {
     foo: "hello",
-    boo: 55
+    boo: 55,
+    isHuman: false
 };
+
+const arrBuffer = CLikeStruct.encode(payload);
+console.log(arrBuffer);
+console.log(CLikeStruct.decode(arrBuffer));
 
 console.time("encode_ab");
 for (let i = 0; i < 1e6; i++) {
@@ -46,7 +52,7 @@ for (let i = 0; i < 1e6; i++) {
 }
 console.timeEnd("encode_protobuf");
 
-const arrBuffer = CLikeStruct.encode(payload);
+// const arrBuffer = CLikeStruct.encode(payload);
 
 console.time("decode_ab");
 for (let i = 0; i < 1e6; i++) {
@@ -67,7 +73,3 @@ for (let i = 0; i < 1e6; i++) {
     messages.Test.decode(protoPayload);
 }
 console.timeEnd("decode_protobuf");
-
-// const arrBuffer = CLikeStruct.encode(payload);
-// console.log(arrBuffer);
-// console.log(CLikeStruct.decode(arrBuffer));

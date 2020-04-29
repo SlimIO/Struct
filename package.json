@@ -59,7 +59,6 @@
     "pkg-ok": "^2.3.1"
   },
   "dependencies": {
-    "@slimio/is": "^1.5.1",
     "dset": "^2.0.1",
     "protocol-buffers": "^4.1.2"
   }

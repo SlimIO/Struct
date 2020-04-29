@@ -1,6 +1,7 @@
 "use strict";
 
 const types = {
+    bool: 1,
     uint8: 1,
     int8: 1,
     uint16: 2,
@@ -21,6 +22,7 @@ const encode = {
             dV.setUint8(offset + id, value[id].charCodeAt(0));
         }
     },
+    bool: (dV, value, offset) => (dV.setUint8(offset, value ? 1 : 0)),
     uint8: (dV, value, offset) => (dV.setUint8(offset, value)),
     int8: (dV, value, offset) => (dV.setInt8(offset, value)),
     uint16: (dV, value, offset) => (dV.setUint16(offset, value)),
@@ -48,6 +50,7 @@ const decode = {
 
         return ret;
     },
+    bool: (dV, offset) => Boolean(dV.getUint8(offset)),
     uint8: (dV, offset) => dV.getUint8(offset),
     int8: (dV, offset) => dV.getInt8(offset),
     uint16: (dV, offset) => dV.getUint16(offset),

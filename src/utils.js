@@ -1,8 +1,5 @@
 "use strict";
 
-// Require Third-party Dependencies
-const is = require("@slimio/is");
-
 // Require Internal Dependencies
 const CONSTANTS = require("./constants");
 
@@ -14,7 +11,7 @@ const CONSTANTS = require("./constants");
 function* flattenObject(obj, rootKey = null) {
     for (const [keyName, value] of Object.entries(obj)) {
         const key = rootKey === null ? keyName : `${rootKey}.${keyName}`;
-        if (is.plainObject(value)) {
+        if (value !== null && typeof value === "object") {
             yield* flattenObject(value, key);
         }
         else {

@@ -4,7 +4,6 @@
 
 // Require Third-party Dependencies
 const dset = require("dset");
-const is = require("@slimio/is");
 
 // Require Internal Dependencies
 const { flattenObject, parseType } = require("./src/utils");
@@ -24,7 +23,7 @@ class Struct {
                 continue;
             }
 
-            if (is.string(keyType)) {
+            if (typeof keyType === "string") {
                 const type = parseType(keyType);
                 if (type === null) {
                     continue;
@@ -100,6 +99,7 @@ const Types = {
     array: (elementsType, length = 1) => {
         return { kind: "array", elementsType, length };
     },
+    bool: "bool",
     uInt8: "uint8",
     uInt16: "uint16",
     uInt32: "uint32",

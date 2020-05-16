@@ -21,55 +21,57 @@ function str2ab(str) {
 const CLikeStruct = new Struct({
     foo: Types.char(10),
     boo: Types.uInt8,
-    isHuman: Types.bool
+    isHuman: Types.bool,
+    bb: Types.bytes(2)
 });
 
 const payload = {
     foo: "hello",
     boo: 55,
-    isHuman: false
+    isHuman: false,
+    bb: [0xff, 0xff]
 };
 
 const arrBuffer = CLikeStruct.encode(payload);
 console.log(arrBuffer);
 console.log(CLikeStruct.decode(arrBuffer));
 
-console.time("encode_ab");
-for (let i = 0; i < 1e6; i++) {
-    CLikeStruct.encode(payload);
-}
-console.timeEnd("encode_ab");
+// console.time("encode_ab");
+// for (let i = 0; i < 1e6; i++) {
+//     CLikeStruct.encode(payload);
+// }
+// console.timeEnd("encode_ab");
 
-console.time("encode_json");
-for (let i = 0; i < 1e6; i++) {
-    str2ab(JSON.stringify(payload));
-}
-console.timeEnd("encode_json");
+// console.time("encode_json");
+// for (let i = 0; i < 1e6; i++) {
+//     str2ab(JSON.stringify(payload));
+// }
+// console.timeEnd("encode_json");
 
-console.time("encode_protobuf");
-for (let i = 0; i < 1e6; i++) {
-    messages.Test.encode(payload);
-}
-console.timeEnd("encode_protobuf");
+// console.time("encode_protobuf");
+// for (let i = 0; i < 1e6; i++) {
+//     messages.Test.encode(payload);
+// }
+// console.timeEnd("encode_protobuf");
 
-// const arrBuffer = CLikeStruct.encode(payload);
+// // const arrBuffer = CLikeStruct.encode(payload);
 
-console.time("decode_ab");
-for (let i = 0; i < 1e6; i++) {
-    CLikeStruct.decode(arrBuffer);
-}
-console.timeEnd("decode_ab");
+// console.time("decode_ab");
+// for (let i = 0; i < 1e6; i++) {
+//     CLikeStruct.decode(arrBuffer);
+// }
+// console.timeEnd("decode_ab");
 
-const bufPayload = str2ab(JSON.stringify(payload));
-console.time("decode_json");
-for (let i = 0; i < 1e6; i++) {
-    JSON.parse(Buffer.from(bufPayload).toString());
-}
-console.timeEnd("decode_json");
+// const bufPayload = str2ab(JSON.stringify(payload));
+// console.time("decode_json");
+// for (let i = 0; i < 1e6; i++) {
+//     JSON.parse(Buffer.from(bufPayload).toString());
+// }
+// console.timeEnd("decode_json");
 
-const protoPayload = messages.Test.encode(payload);
-console.time("decode_protobuf");
-for (let i = 0; i < 1e6; i++) {
-    messages.Test.decode(protoPayload);
-}
-console.timeEnd("decode_protobuf");
+// const protoPayload = messages.Test.encode(payload);
+// console.time("decode_protobuf");
+// for (let i = 0; i < 1e6; i++) {
+//     messages.Test.decode(protoPayload);
+// }
+// console.timeEnd("decode_protobuf");

@@ -96,6 +96,7 @@ class Struct {
 // Available Types for our Struct
 const Types = {
     char: (length = 1) => `char[${length}]`,
+    bytes: (length = 1) => `bytes[${length}]`,
     array: (elementsType, length = 1) => {
         return { kind: "array", elementsType, length };
     },

@@ -1,3 +1,4 @@
+/* eslint-disable max-params */
 "use strict";
 
 const types = {
@@ -15,11 +16,16 @@ const types = {
 };
 
 const encode = {
-    // eslint-disable-next-line max-params
     char(dV, value, offset, length) {
         const maxLength = value.length < length ? value.length : length;
         for (let id = 0; id < maxLength; id++) {
             dV.setUint8(offset + id, value[id].charCodeAt(0));
+        }
+    },
+    bytes(dV, value, offset, length) {
+        const maxLength = value.length < length ? value.length : length;
+        for (let id = 0; id < maxLength; id++) {
+            dV.setUint8(offset + id, value[id]);
         }
     },
     bool: (dV, value, offset) => (dV.setUint8(offset, value ? 1 : 0)),
@@ -37,9 +43,10 @@ const encode = {
 
 const decode = {
     char(dV, offset, length = 1) {
+        const maxLength = offset + length;
         let ret = "";
 
-        for (let id = offset; id <= length; id++) {
+        for (let id = offset; id < maxLength; id++) {
             const char = dV.getUint8(id);
             if (char === 0) {
                 break;
@@ -49,6 +56,16 @@ const decode = {
         ret | 0;
 
         return ret;
+    },
+    bytes(dV, offset, length = 1) {
+        const bytes = [];
+        const maxLength = offset + length;
+
+        for (let id = offset; id < maxLength; id++) {
+            bytes.push(dV.getUint8(id));
+        }
+
+        return bytes;
     },
     bool: (dV, offset) => Boolean(dV.getUint8(offset)),
     uint8: (dV, offset) => dV.getUint8(offset),
